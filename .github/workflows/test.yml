@@ -35,6 +35,7 @@ jobs:
           echo "base_ref:   ${{ github.base_ref }}"
           echo "head_ref:   ${{ github.head_ref }}"
           echo "ref:        ${{ github.ref }}"
+          echo "ref_type:   ${{ github.ref_type }}"
           echo "event_name: ${{ github.event_name }}"
 
       - name: Test
