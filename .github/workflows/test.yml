@@ -21,6 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # ------------------------------------------------------------
+      # Setup repository
+      # ------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # ------------------------------------------------------------
       # Echo Context
       # ------------------------------------------------------------
       - name: Context
@@ -33,4 +39,4 @@ jobs:
 
       - name: Test
         run: |
-          echo "test"
+          git show
