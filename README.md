@@ -1,3 +1,2 @@
 # test-gh-action
 
-test
