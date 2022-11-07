@@ -25,6 +25,10 @@ jobs:
       # ------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Context
+        run: |
+          apt update
+          apt install -y libseccomp2
 
       # ------------------------------------------------------------
       # Echo Context
