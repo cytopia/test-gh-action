@@ -40,6 +40,10 @@ jobs:
           sudo apt install -y libseccomp2
           sudo apt install -y ca-certificates
 
+      - name: networking
+        run: |
+          sudo service networking restart
+
       - name: docker
         run: |
           sudo service docker restart
