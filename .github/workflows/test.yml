@@ -40,9 +40,10 @@ jobs:
           sudo apt install -y libseccomp2
           sudo apt install -y ca-certificates
 
-      - name: networking
+      - name: IP forward
         run: |
-          sudo service networking restart
+          sysctl net.ipv4.ip_forward
+          sudo sysctl -w net.ipv4.ip_forward=1
 
       - name: docker
         run: |
