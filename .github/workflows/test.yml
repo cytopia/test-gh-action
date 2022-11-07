@@ -25,7 +25,17 @@ jobs:
       # ------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Context
+
+      - name: resolve
+        run: |
+          cat /etc/resolv.conf
+
+      - name: docker
+        run: |
+          sudo service docker restart
+
+
+      - name: apt
         run: |
           sudo apt update
           sudo apt install -y libseccomp2
