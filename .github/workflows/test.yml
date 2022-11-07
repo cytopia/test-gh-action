@@ -30,15 +30,19 @@ jobs:
         run: |
           cat /etc/resolv.conf
 
-      - name: docker
+      - name: daemon-json
         run: |
-          sudo service docker restart
-
+          cat /etc/docker/daemon.json || true
 
       - name: apt
         run: |
           sudo apt update
           sudo apt install -y libseccomp2
+          sudo apt install -y ca-certificates
+
+      - name: docker
+        run: |
+          sudo service docker restart
 
       # ------------------------------------------------------------
       # Echo Context
