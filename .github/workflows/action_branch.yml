@@ -68,7 +68,9 @@ jobs:
           echo "mock"
 
   build-kops:
-    needs: [configure-kops]
+    needs:
+      - configure-kops
+      - build
     name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}-kops${{ matrix.KOPS }} (${{ matrix.ARCH }}) ${{ matrix.REFS }}
     runs-on: ubuntu-latest
     strategy:
