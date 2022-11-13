@@ -50,3 +50,32 @@ jobs:
     secrets:
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  # -----------------------------------------------------------------------------------------------
+  # (3/5) Build
+  # -----------------------------------------------------------------------------------------------
+  build:
+    needs: [configure]
+    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }} (${{ matrix.FLAVOUR }}) (${{ matrix.ARCH }}) ${{ matrix.REFS }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.configure.outputs.matrix_build) }}
+    steps:
+      - name: mock
+        run: |
+          echo "mock"
+
+  build-kops:
+    needs: [configure-kops]
+    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}${{ matrix.KOPS }} (${{ matrix.FLAVOUR }}) (${{ matrix.ARCH }}) ${{ matrix.REFS }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.configure-kops.outputs.matrix_build) }}
+    steps:
+      - name: mock
+        run: |
+          echo "mock"
