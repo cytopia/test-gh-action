@@ -75,7 +75,7 @@ jobs:
     with:
       has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
       run_tests: true
-      upload_artifact: true
+      upload_artifact: false
       matrix: ${{ needs.configure.outputs.matrix_build }}
       artifact_prefix: ${{ needs.configure.outputs.artifact_prefix }}
       pull_base_image: false
@@ -91,7 +91,7 @@ jobs:
     with:
       has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
       run_tests: true
-      upload_artifact: true
+      upload_artifact: false
       matrix: ${{ needs.configure-awskops.outputs.matrix_build }}
       artifact_prefix: ${{ needs.configure-awskops.outputs.artifact_prefix }}
       pull_base_image: false
