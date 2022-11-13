@@ -98,3 +98,19 @@ jobs:
       stage: awskops
       stage_prev: base
       push_image: false
+
+  build-awshelm:
+    needs:
+      - configure-awshelm
+      - build-base
+    uses: ./.github/workflows/build.yml
+    with:
+      has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
+      run_tests: true
+      upload_artifact: false
+      matrix: ${{ needs.configure-awshelm.outputs.matrix_build }}
+      artifact_prefix: ${{ needs.configure-awshelm.outputs.artifact_prefix }}
+      pull_base_image: false
+      stage: awshelm
+      stage_prev: base
+      push_image: false
