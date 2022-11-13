@@ -11,13 +11,6 @@ name: build
 # -------------------------------------------------------------------------------------------------
 on:
   push:
-    paths:
-      - 'Makefile'
-      - 'Dockerfiles/**'
-      - 'tests/**'
-      - '.github/workflows/action*.yml'
-      - '.github/workflows/docker*.yml'
-      - '.github/workflows/params.yml'
 
 jobs:
 
