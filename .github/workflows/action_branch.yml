@@ -37,7 +37,7 @@ jobs:
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-  configure-kops:
+  configure-awskops:
     needs: [params]
     uses: ./.github/workflows/configure.yml
     with:
@@ -51,7 +51,7 @@ jobs:
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-  configure-helm:
+  configure-awshelm:
     needs: [params]
     uses: ./.github/workflows/configure.yml
     with:
@@ -68,45 +68,33 @@ jobs:
   # -----------------------------------------------------------------------------------------------
   # (3/5) Build
   # -----------------------------------------------------------------------------------------------
-  build:
-    needs: [configure]
-    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}-base (${{ matrix.ARCH }}) ${{ matrix.REFS }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.configure.outputs.matrix_build) }}
-    steps:
-      - name: mock
-        run: |
-          echo "mock"
-
-  build-kops:
+  build-base:
     needs:
-      - configure-kops
-      - build
-    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}-kops${{ matrix.EXTRA }} (${{ matrix.ARCH }}) ${{ matrix.REFS }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.configure-kops.outputs.matrix_build) }}
-    steps:
-      - name: mock
-        run: |
-          echo "mock"
+      - configure
+    uses: ./.github/workflows/build.yml
+    with:
+      has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
+      run_tests: true
+      upload_artifact: true
+      matrix: ${{ needs.configure.outputs.matrix_build }}
+      artifact_prefix: ${{ needs.configure.outputs.artifact_prefix }}
+      pull_base_image: false
+      stage: base
+      stage_prev: ''
+      push_image: false
 
-  build-helm:
+  build-awskops:
     needs:
-      - configure-helm
-      - build
-    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}-helm${{ matrix.EXTRA }} (${{ matrix.ARCH }}) ${{ matrix.REFS }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include: ${{ fromJson(needs.configure-helm.outputs.matrix_build) }}
-    steps:
-      - name: mock
-        run: |
-          echo "mock"
+      - configure-awskops
+      - build-base
+    uses: ./.github/workflows/build.yml
+    with:
+      has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
+      run_tests: true
+      upload_artifact: true
+      matrix: ${{ needs.configure-awskops.outputs.matrix_build }}
+      artifact_prefix: ${{ needs.configure-awskops.outputs.artifact_prefix }}
+      pull_base_image: false
+      stage: awskops
+      stage_prev: base
+      push_image: false
