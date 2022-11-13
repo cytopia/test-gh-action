@@ -152,7 +152,7 @@ jobs:
           # TODO: Move to input variables
           FIELDS_BUILD="$( echo  '["VERSION", "FLAVOUR", "KOPS", "ARCH"]' | jq -M -c )"
           FIELDS_DEPLOY="$( echo '["VERSION", "FLAVOUR", "KOPS"]' | jq -M -c )"
-          VERSIONS=${{ inputs.versions }}
+          VERSIONS="$( echo '${{ inputs.versions }}' | jq -M -c )"
 
           if [ "${{ inputs.has_refs }}" = "true" ]; then
 
