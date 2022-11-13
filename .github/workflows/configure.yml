@@ -15,6 +15,14 @@ on:
         description: 'The JSON string for refs. ( object: {BRANCH, NUM_LATEST_TAGS} )'
         required: true
         type: string
+      fields_build:
+        description: 'The JSON string for build fields to extract'
+        required: true
+        type: string
+      fields_deploy:
+        description: 'The JSON string for deploy fields to extract'
+        required: true
+        type: string
       enabled:
         description: 'Determines whether this workflow is enabled at all (will run or skip).'
         required: true
@@ -149,10 +157,9 @@ jobs:
         id: set-matrix
         shell: bash
         run: |
-          # TODO: Move to input variables
-          FIELDS_BUILD="$( echo  '["VERSION", "FLAVOUR", "KOPS", "ARCH"]' | jq -M -c )"
-          FIELDS_DEPLOY="$( echo '["VERSION", "FLAVOUR", "KOPS"]' | jq -M -c )"
-          VERSIONS="$( echo '${{ inputs.versions }}' | jq -M -c )"
+          FIELDS_BUILD="$(  echo  '${{ inputs.fields_build }}' | jq -M -c )"
+          FIELDS_DEPLOY="$( echo '${{ inputs.fields_deploy }}' | jq -M -c )"
+          VERSIONS="$(      echo '${{ inputs.versions }}'      | jq -M -c )"
 
           if [ "${{ inputs.has_refs }}" = "true" ]; then
 

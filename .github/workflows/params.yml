@@ -51,6 +51,9 @@ env:
       }
     ]
 
+    FIELDS_BUILD: '["VERSION", "FLAVOUR", "KOPS", "ARCH"]'
+    FIELDS_DEPLOY: '["VERSION", "FLAVOUR", "KOPS"]'
+
 
 # -------------------------------------------------------------------------------------------------
 # When to run
@@ -74,10 +77,17 @@ jobs:
       refs: ${{ steps.set-refs.outputs.matrix }}
 
     steps:
+      - name: "[Set-Output] Fields"
+        id: set-fields
+        run: |
+          FIELDS_BUILD="$(  echo '${{ env.FIELDS_BUILD }}'  | jq -M -c )"
+          FIELDS_DEPLOY="$( echo '${{ env.FIELDS_DEPLOY }}' | jq -M -c )"
+          echo "fields_build=${FIELDS_BUILD}"   >> $GITHUB_OUTPUT
+          echo "fields_deploy=${FIELDS_DEPLOY}" >> $GITHUB_OUTPUT
+
       - name: "[Set-Output] Versions"
         id: set-versions
         run: |
-
           VERSIONS="$( echo '${{ env.VERSIONS }}' | jq -M -c )"
           echo "versions=${VERSIONS}" >> $GITHUB_OUTPUT
 
@@ -92,6 +102,16 @@ jobs:
 
       - name: "[DEBUG] Show settings'"
         run: |
+          echo 'Fields (build)'
+          echo '--------------------'
+          echo '${{ steps.set-fields.outputs.fields_build }}'
+          echo
+
+          echo 'Fields (deploy)'
+          echo '--------------------'
+          echo '${{ steps.set-fields.outputs.fields_deploy }}'
+          echo
+
           echo 'Versions'
           echo '--------------------'
           echo '${{ steps.set-versions.outputs.versions }}'
