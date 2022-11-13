@@ -30,8 +30,8 @@ env:
         "ARCH":    ["linux/amd64", "linux/arm64"]
       }
     ]
-  FIELDS_BUILD: '["VERSION", "ARCH"]'
-  FIELDS_DEPLOY: '["VERSION"]'
+  FIELDS_BUILD: '[{"VERSION":"VERSION"}, {"ARCH":"ARCH"}]'
+  FIELDS_DEPLOY: '[{"VERSION":"VERSION"}]'
 
 
 # -------------------------------------------------------------------------------------------------
