@@ -158,18 +158,18 @@ jobs:
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ARCH:. ARCH[], ...})
             INNER_STRING="$( echo "${FIELDS_BUILD}" \
-              | jq -r  '.[] | "\(.): .\(.)[]"' \
+              | jq -r '.[] | "\(.): .\(.)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
-            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, refs: \$refs[]})'" )"
+            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: \$refs[]})'" )"
             MATRIX_BUILD="$( eval jq -M -c --argjson refs '${{ inputs.refs }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ....})
             INNER_STRING="$( echo "${FIELDS_DEPLOY}" \
-              | jq -r  '.[] | "\(.): .\(.)[]"' \
+              | jq -r '.[] | "\(.): .\(.)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
-            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, refs: \$refs[]})'" )"
+            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: \$refs[]})'" )"
             MATRIX_DEPLOY="$( eval jq -M -c --argjson refs '${{ inputs.refs }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             echo "matrix_build=${MATRIX_BUILD}"   >> $GITHUB_OUTPUT
@@ -180,7 +180,7 @@ jobs:
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ARCH:. ARCH[], ...})
             INNER_STRING="$( echo "${FIELDS_BUILD}" \
-              | jq -r  '.[] | "\(.): .\(.)[]"' \
+              | jq -r '.[] | "\(.): .\(.)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
             OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}})'" )"
@@ -188,11 +188,11 @@ jobs:
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ....})
             INNER_STRING="$( echo "${FIELDS_DEPLOY}" \
-              | jq -r  '.[] | "\(.): .\(.)[]"' \
+              | jq -r '.[] | "\(.): .\(.)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
             OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}})'" )"
-            MATRIX_DEPLOY="$( eval jq -M -c '${{ inputs.refs }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
+            MATRIX_DEPLOY="$( eval jq -M -c "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             echo "matrix_build=${MATRIX_BUILD}"   >> $GITHUB_OUTPUT
             echo "matrix_deploy=${MATRIX_DEPLOY}" >> $GITHUB_OUTPUT
