@@ -71,7 +71,7 @@ jobs:
     needs:
       - configure-kops
       - build
-    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}-kops${{ matrix.KOPS }} (${{ matrix.ARCH }}) ${{ matrix.REFS }}
+    name: Build ${{ matrix.NAME }}-${{ matrix.VERSION }}-kops${{ matrix.EXTRA }} (${{ matrix.ARCH }}) ${{ matrix.REFS }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
