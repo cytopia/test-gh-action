@@ -16,42 +16,22 @@ env:
         "NAME": "ansible",
         "VERSION": [
           "latest",
-          "2.13",
-          "2.12",
-          "2.11",
-          "2.10",
-          "2.9",
-          "2.8"
+          "2.13"
         ],
         "KOPS": [
           "1.25",
-          "1.24",
-          "1.23",
-          "1.22",
-          "1.21",
-          "1.20",
-          "1.19"
+          "1.24"
         ],
         "HELM": [
           "3.10",
-          "3.9",
-          "3.8",
-          "3.7",
-          "3.6",
-          "3.5",
-          "3.4",
-          "3.3",
-          "3.2",
-          "3.1",
-          "3.0",
-          "2.16"
+          "3.9"
         ],
         "FLAVOUR": ["default"],
         "ARCH":    ["linux/amd64", "linux/arm64"]
       }
     ]
-  FIELDS_BUILD: '["VERSION", "FLAVOUR", "KOPS", "ARCH"]'
-  FIELDS_DEPLOY: '["VERSION", "FLAVOUR", "KOPS"]'
+  FIELDS_BUILD: '["VERSION", "FLAVOUR", "ARCH"]'
+  FIELDS_DEPLOY: '["VERSION", "FLAVOUR"]'
 
 
 # -------------------------------------------------------------------------------------------------
@@ -66,6 +46,12 @@ on:
       refs:
         description: "Stringified JSON of determined Refs (Only on scheduled runs)."
         value: ${{ jobs.params.outputs.refs }}
+      fields_build:
+        description: "Build fields to extract."
+        value: ${{ jobs.params.outputs.fields_build }}
+      fields_deploy:
+        description: "Deploy fields to extract."
+        value: ${{ jobs.params.outputs.fields_deploy }}
 
 jobs:
   params:
@@ -74,6 +60,8 @@ jobs:
     outputs:
       versions: ${{ steps.set-versions.outputs.versions }}
       refs: ${{ steps.set-refs.outputs.matrix }}
+      fields_build: ${{ steps.set-fields.outputs.fields_build }}
+      fields_deploy: ${{ steps.set-fields.outputs.fields_deploy }}
 
     steps:
       - name: "[Set-Output] Fields"

@@ -36,3 +36,17 @@ jobs:
     secrets:
       dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
       dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  configure-kops:
+    needs: [params]
+    uses: ./.github/workflows/configure.yml
+    with:
+      enabled: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && (github.event.pull_request.user.login != 'cytopia')) }}
+      can_deploy: ${{ (github.repository == 'cytopia/test-gh-action') && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release-')) }}
+      versions: ${{ needs.params.outputs.versions }}
+      refs: ${{ needs.params.outputs.refs }}
+      fields_build: '["VERSION", "FLAVOUR", "KOPS", "ARCH"]'
+      fields_deploy: '["VERSION", "FLAVOUR", "KOPS"]'
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
