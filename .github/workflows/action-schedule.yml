@@ -3,20 +3,18 @@
 # -------------------------------------------------------------------------------------------------
 # Job Name
 # -------------------------------------------------------------------------------------------------
-on:
-  # Nightly: At 00:00 on Monday, Wednesday, and Friday
-  schedule:
-    - cron: '*/5 * * * *'
-  # Dispatch: allows for manual trigger via GH UI
-  workflow_dispatch:
-
+name: nightly
 
 
 # -------------------------------------------------------------------------------------------------
 # When to run
 # -------------------------------------------------------------------------------------------------
 on:
-  push:
+  # Nightly: At 00:00 on Monday, Wednesday, and Friday
+  schedule:
+    - cron: '*/5 * * * *'
+  # Dispatch: allows for manual trigger via GH UI
+  workflow_dispatch:
 
 jobs:
 
