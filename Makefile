@@ -1,3 +1,5 @@
+OUTFILE=out.txt
+
 build:
 	@echo build
 
@@ -17,5 +19,6 @@ docker-pull-base-image:
 	@echo docker-pull-base-image
 
 save-verify:
-	@echo save-verify
+	@echo save-verify $(OUTFILE)
+	@echo "test" > $(OUTFILE)
 

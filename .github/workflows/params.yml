@@ -33,6 +33,14 @@ env:
   FIELDS_BUILD: '[{"VERSION":"VERSION"}, {"ARCH":"ARCH"}]'
   FIELDS_DEPLOY: '[{"VERSION":"VERSION"}]'
 
+  # Set Refs to build for scheduled jobs
+  REFS: >-
+    {
+      "DEFAULT_BRANCH": "master",
+      "BRANCHES": "master",
+      "NUM_LATEST_TAGS": 0
+    }
+
 
 # -------------------------------------------------------------------------------------------------
 # When to run
@@ -44,67 +52,75 @@ on:
         description: "Stringified JSON of Versions definition."
         value: ${{ jobs.params.outputs.versions }}
       refs:
-        description: "Stringified JSON of determined Refs (Only on scheduled runs)."
+        description: "Stringified JSON of Refs definition."
         value: ${{ jobs.params.outputs.refs }}
       fields_build:
-        description: "Build fields to extract."
+        description: "Stringified JSON of Build fields to extract."
         value: ${{ jobs.params.outputs.fields_build }}
       fields_deploy:
-        description: "Deploy fields to extract."
+        description: "Stringified JSON of Deploy fields to extract."
         value: ${{ jobs.params.outputs.fields_deploy }}
+      artifact_prefix:
+        description: "Unique artifact prefix to be used with GH artifacts."
+        value: ${{ jobs.params.outputs.artifact_prefix }}
+
 
 jobs:
   params:
     runs-on: ubuntu-latest
 
     outputs:
-      versions: ${{ steps.set-versions.outputs.versions }}
-      refs: ${{ steps.set-refs.outputs.matrix }}
-      fields_build: ${{ steps.set-fields.outputs.fields_build }}
-      fields_deploy: ${{ steps.set-fields.outputs.fields_deploy }}
+      versions: ${{ steps.set-json.outputs.versions }}
+      refs: ${{ steps.set-json.outputs.matrix }}
+      fields_build: ${{ steps.set-json.outputs.fields_build }}
+      fields_deploy: ${{ steps.set-json.outputs.fields_deploy }}
+      artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}
 
     steps:
-      - name: "[Set-Output] Fields"
-        id: set-fields
+      - name: "[Set-Output] JSON"
+        id: set-json
         run: |
+          VERSIONS="$(      echo '${{ env.VERSIONS }}'      | jq -M -c )"
+          REFS="$(          echo '${{ env.REFS }}'          | jq -M -c )"
           FIELDS_BUILD="$(  echo '${{ env.FIELDS_BUILD }}'  | jq -M -c )"
           FIELDS_DEPLOY="$( echo '${{ env.FIELDS_DEPLOY }}' | jq -M -c )"
+
+          echo "versions=${VERSIONS}" >> $GITHUB_OUTPUT
+          echo "refs=${REFS}"         >> $GITHUB_OUTPUT
           echo "fields_build=${FIELDS_BUILD}"   >> $GITHUB_OUTPUT
           echo "fields_deploy=${FIELDS_DEPLOY}" >> $GITHUB_OUTPUT
 
-      - name: "[Set-Output] Versions"
-        id: set-versions
+      - name: "[Set-Output] artifact_prefix (unique Artifact prefix)"
+        id: set-artifact-prefix
+        shell: bash
         run: |
-          VERSIONS="$( echo '${{ env.VERSIONS }}' | jq -M -c )"
-          echo "versions=${VERSIONS}" >> $GITHUB_OUTPUT
-
-      - name: "[Set-Output] Refs"
-        id: set-refs
-        uses: cytopia/git-ref-matrix-action@v0.1.12
-        with:
-          repository_default_branch: master
-          branches: master
-          num_latest_tags: 0
-        if: github.event_name == 'schedule'
+          PRE_DATE="$( date +"%s" )"
+          PRE_RAND="$( echo $RANDOM | md5sum | head -c 10 )"
+          echo "prefix=${PRE_DATE}-${PRE_RAND}" >> $GITHUB_OUTPUT
 
       - name: "[DEBUG] Show settings'"
         run: |
-          echo 'Fields (build)'
-          echo '--------------------'
-          echo '${{ steps.set-fields.outputs.fields_build }}'
-          echo
-
-          echo 'Fields (deploy)'
-          echo '--------------------'
-          echo '${{ steps.set-fields.outputs.fields_deploy }}'
-          echo
-
           echo 'Versions'
           echo '--------------------'
-          echo '${{ steps.set-versions.outputs.versions }}'
+          echo '${{ steps.set-json.outputs.versions }}'
           echo
 
           echo 'Refs'
           echo '--------------------'
-          echo '${{ steps.set-refs.outputs.matrix }}'
+          echo '${{ steps.set-json.outputs.matrix }}'
+          echo
+
+          echo 'Fields (build)'
+          echo '--------------------'
+          echo '${{ steps.set-json.outputs.fields_build }}'
+          echo
+
+          echo 'Fields (deploy)'
+          echo '--------------------'
+          echo '${{ steps.set-json.outputs.fields_deploy }}'
+          echo
+
+          echo 'Artifact Prefix'
+          echo '--------------------'
+          echo '${{ steps.set-artifact-prefix.outputs.prefix }}'
           echo

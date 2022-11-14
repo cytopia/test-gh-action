@@ -62,15 +62,15 @@ on:
         description: "(boolean) Can we push to Dockerhub?"
         value: ${{ jobs.configure.outputs.can_push }}
       # Determined settings (values)
+      has_refs:
+        description: "(string) 'true' or 'false' Do we have refs to build?"
+        value: ${{ jobs.configure.outputs.has_refs }}
       matrix_build:
         description: "(string) The determined JSON string build matrix."
         value: ${{ jobs.configure.outputs.matrix_build }}
       matrix_deploy:
         description: "(string) The determined JSON string deploy matrix."
         value: ${{ jobs.configure.outputs.matrix_deploy }}
-      artifact_prefix:
-        description: "(string) The determined unique artifact prefix."
-        value: ${{ jobs.configure.outputs.artifact_prefix }}
 
 jobs:
 
@@ -92,8 +92,9 @@ jobs:
       # Flags
       can_login: ${{ steps.set-login.outputs.can_login }}
       can_push: ${{ steps.set-push.outputs.can_push }}
+      # Settings
+      has_refs: ${{ steps.set-refs.outputs.has_refs }}
       # Values
-      artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}
       matrix_build: ${{ steps.set-matrix.outputs.matrix_build }}
       matrix_deploy: ${{ steps.set-matrix.outputs.matrix_deploy }}
 
@@ -140,15 +141,36 @@ jobs:
       # ------------------------------------------------------------
 
       ###
-      ### Unique Artifact prefix
+      ### Do we have refs to build against?
       ###
-      - name: "[Set-Output] artifact_prefix (unique Artifact prefix)"
-        id: set-artifact-prefix
+      - name: "Evaluate Refs (branches and latest tags)"
+        id: eval-refs
         shell: bash
         run: |
-          PRE_DATE="$( date +"%s" )"
-          PRE_RAND="$( echo $RANDOM | md5sum | head -c 10 )"
-          echo "prefix=${PRE_DATE}-${PRE_RAND}" >> $GITHUB_OUTPUT
+          DEFAULT_BRANCH="$( echo '${{ inputs.refs }}' | jq -M -c -r '.DEFAULT_BRANCH' )"
+          BRANCHES="$( echo '${{ inputs.refs }}' | jq -M -c -r '.BRANCHES' )"
+          NUM_LATEST_TAGS="$( echo '${{ inputs.refs }}' | jq -M -c -r '.NUM_LATEST_TAGS' )"
+
+          echo "default_branch=${DEFAULT_BRANCH}"   >> $GITHUB_OUTPUT
+          echo "branches=${BRANCHES}"               >> $GITHUB_OUTPUT
+          echo "num_latest_tags=${NUM_LATEST_TAGS}" >> $GITHUB_OUTPUT
+
+          echo "DEFAULT_BRANCH=${DEFAULT_BRANCH}"
+          echo "BRANCHES=${BRANCHES}"
+          echo "NUM_LATEST_TAGS=${NUM_LATEST_TAGS}"
+
+      ###
+      ### Set Refs
+      ###
+      - name: "[Set-Output] has_refs and ref-matrix"
+        id: set-refs
+        uses: cytopia/git-ref-matrix-action@v0.1.12
+        with:
+          repository_default_branch: ${{ steps.eval-refs.outputs.default_branch }}
+          branches: ${{ steps.eval-refs.outputs.branches }}
+          num_latest_tags: ${{ steps.eval-refs.outputs.num_latest_tags }}
+          # Only use refs if the job is a schedule or if the job is schedule and was triggered manually
+          disable_refs: ${{ !(github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
 
       ###
       ### Set Build and Deploy Matrix
@@ -161,7 +183,7 @@ jobs:
           FIELDS_DEPLOY="$( echo '${{ inputs.fields_deploy }}' | jq -M -c )"
           VERSIONS="$(      echo '${{ inputs.versions }}'      | jq -M -c )"
 
-          if [ "${{ inputs.has_refs }}" = "true" ]; then
+          if [ "${{ steps.set-refs.outputs.has_refs }}" = "true" ]; then
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ARCH:. ARCH[], ...})
             INNER_STRING="$( echo "${FIELDS_BUILD}" \
@@ -169,7 +191,7 @@ jobs:
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
             OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: \$refs[]})'" )"
-            MATRIX_BUILD="$( eval jq -M -c --argjson refs '${{ inputs.refs }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
+            MATRIX_BUILD="$( eval jq -M -c --argjson refs '${{ steps.set-refs.outputs.matrix }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ....})
             INNER_STRING="$( echo "${FIELDS_DEPLOY}" \
@@ -177,11 +199,10 @@ jobs:
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
             OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: \$refs[]})'" )"
-            MATRIX_DEPLOY="$( eval jq -M -c --argjson refs '${{ inputs.refs }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
+            MATRIX_DEPLOY="$( eval jq -M -c --argjson refs '${{ steps.set-refs.outputs.matrix }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             echo "matrix_build=${MATRIX_BUILD}"   >> $GITHUB_OUTPUT
             echo "matrix_deploy=${MATRIX_DEPLOY}" >> $GITHUB_OUTPUT
-            echo "has_refs=true"                  >> $GITHUB_OUTPUT
 
           else
 
@@ -203,7 +224,6 @@ jobs:
 
             echo "matrix_build=${MATRIX_BUILD}"   >> $GITHUB_OUTPUT
             echo "matrix_deploy=${MATRIX_DEPLOY}" >> $GITHUB_OUTPUT
-            echo "has_refs=false"                 >> $GITHUB_OUTPUT
           fi
 
       # ------------------------------------------------------------
@@ -238,7 +258,6 @@ jobs:
         run: |
           echo 'enabled: ${{ inputs.enabled }}'
           echo 'can_deploy: ${{ inputs.can_deploy }}'
-          echo 'can_deploy: ${{ inputs.can_deploy }}'
           echo 'versions: ${{ inputs.versions }}'
           echo 'refs: ${{ inputs.refs }}'
 
@@ -251,7 +270,8 @@ jobs:
           # Flags
           echo 'can_login: ${{ steps.set-login.outputs.can_login }}'
           echo 'can_push: ${{ steps.set-push.outputs.can_push }}'
+          # Settins
+          echo 'has_refs: ${{ steps.set-refs.outputs.has_refs }}'
           # Values
-          echo 'artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}'
           echo 'matrix_build: ${{ steps.set-matrix.outputs.matrix_build }}'
           echo 'matrix_deploy: ${{ steps.set-matrix.outputs.matrix_deploy }}'
