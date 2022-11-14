@@ -1,0 +1,121 @@
+---
+
+# -------------------------------------------------------------------------------------------------
+# Job Name
+# -------------------------------------------------------------------------------------------------
+name: build
+
+
+# -------------------------------------------------------------------------------------------------
+# When to run
+# -------------------------------------------------------------------------------------------------
+on:
+  push:
+  # Dispatch: allows for manual trigger via GH UI
+  workflow_dispatch:
+
+jobs:
+
+  # -----------------------------------------------------------------------------------------------
+  # (1/5) Determine parameter settings
+  # -----------------------------------------------------------------------------------------------
+  params:
+    uses: ./.github/workflows/params.yml
+
+  # -----------------------------------------------------------------------------------------------
+  # (2/5) Configure Build and Deploy Matrices
+  # -----------------------------------------------------------------------------------------------
+  configure:
+    needs: [params]
+    uses: ./.github/workflows/configure.yml
+    with:
+      enabled: true
+      can_deploy: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release-') }}
+      versions: ${{ needs.params.outputs.versions }}
+      refs: ${{ needs.params.outputs.refs }}
+      fields_build: ${{ needs.params.outputs.fields_build }}
+      fields_deploy: ${{ needs.params.outputs.fields_deploy }}
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  configure-awskops:
+    needs: [params]
+    uses: ./.github/workflows/configure.yml
+    with:
+      enabled: true
+      can_deploy: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release-') }}
+      versions: ${{ needs.params.outputs.versions }}
+      refs: ${{ needs.params.outputs.refs }}
+      fields_build: '[{"VERSION":"VERSION"}, {"KOPS":"EXTRA"}, {"ARCH":"ARCH"}]'
+      fields_deploy: '[{"VERSION":"VERSION"}, {"KOPS":"EXTRA"}]'
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  configure-awshelm:
+    needs: [params]
+    uses: ./.github/workflows/configure.yml
+    with:
+      enabled: true
+      can_deploy: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') || startsWith(github.ref, 'refs/heads/release-') }}
+      versions: ${{ needs.params.outputs.versions }}
+      refs: ${{ needs.params.outputs.refs }}
+      fields_build: '[{"VERSION":"VERSION"}, {"HELM":"EXTRA"}, {"ARCH":"ARCH"}]'
+      fields_deploy: '[{"VERSION":"VERSION"}, {"HELM":"EXTRA"}]'
+    secrets:
+      dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+      dockerhub_password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+  # -----------------------------------------------------------------------------------------------
+  # (3/5) Build
+  # -----------------------------------------------------------------------------------------------
+  build-base:
+    needs:
+      - params
+      - configure
+    uses: ./.github/workflows/build.yml
+    with:
+      has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
+      run_tests: true
+      upload_artifact: true
+      matrix: ${{ needs.configure.outputs.matrix_build }}
+      artifact_prefix: ${{ needs.params.outputs.artifact_prefix }}
+      pull_base_image: false
+      stage: base
+      stage_prev: ''
+      push_image: false
+
+  build-awskops:
+    needs:
+      - params
+      - configure-awskops
+      - build-base
+    uses: ./.github/workflows/build.yml
+    with:
+      has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
+      run_tests: true
+      upload_artifact: true
+      matrix: ${{ needs.configure-awskops.outputs.matrix_build }}
+      artifact_prefix: ${{ needs.params.outputs.artifact_prefix }}
+      pull_base_image: false
+      stage: awskops
+      stage_prev: base
+      push_image: false
+
+  build-awshelm:
+    needs:
+      - params
+      - configure-awshelm
+      - build-base
+    uses: ./.github/workflows/build.yml
+    with:
+      has_refs: ${{ needs.configure.outputs.has_refs == 'true' }}
+      run_tests: true
+      upload_artifact: true
+      matrix: ${{ needs.configure-awshelm.outputs.matrix_build }}
+      artifact_prefix: ${{ needs.params.outputs.artifact_prefix }}
+      pull_base_image: false
+      stage: awshelm
+      stage_prev: base
+      push_image: false
