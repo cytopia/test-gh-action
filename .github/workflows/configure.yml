@@ -103,11 +103,6 @@ jobs:
     ###
     steps:
 
-      - name: "[SETUP] Checkout repository (current)"
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
       # ------------------------------------------------------------
       # Set flags
       # ------------------------------------------------------------
@@ -169,7 +164,7 @@ jobs:
       ###
       - name: "[Set-Output] has_refs and ref-matrix"
         id: set-refs
-        uses: cytopia/git-ref-matrix-action@v0.1.12
+        uses: cytopia/git-ref-matrix-action@v0.1.13
         with:
           repository_default_branch: ${{ steps.eval-refs.outputs.default_branch }}
           branches: ${{ steps.eval-refs.outputs.branches }}
