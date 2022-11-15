@@ -190,16 +190,16 @@ jobs:
               | jq -r '.[] | to_entries[] | "\(.value): .\(.key)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
-            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: \$refs[]})'" )"
-            MATRIX_BUILD="$( eval jq -M -c --argjson refs '${{ steps.set-refs.outputs.matrix }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
+            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: ${{ steps.set-refs.outputs.matrix }}[]'" )"
+            MATRIX_BUILD="$( eval jq -M -c  "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ....})
             INNER_STRING="$( echo "${FIELDS_DEPLOY}" \
               | jq -r '.[] | to_entries[] | "\(.value): .\(.key)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
-            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: \$refs[]})'" )"
-            MATRIX_DEPLOY="$( eval jq -M -c --argjson refs '${{ steps.set-refs.outputs.matrix }}' "${OUTER_STRING}" <<<"${VERSIONS}" )"
+            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: ${{ steps.set-refs.outputs.matrix }}[]'" )"
+            MATRIX_DEPLOY="$( eval jq -M -c "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             echo "matrix_build=${MATRIX_BUILD}"   >> $GITHUB_OUTPUT
             echo "matrix_deploy=${MATRIX_DEPLOY}" >> $GITHUB_OUTPUT
@@ -243,6 +243,8 @@ jobs:
           echo '-------------------------------------|-----------------------------------'
           echo 'github.event_name                    | ${{ github.event_name }}'
           echo '-------------------------------------|-----------------------------------'
+          echo 'github.ref                           | ${{ github.ref }}'
+          echo '-------------------------------------|-----------------------------------'
           echo 'github.ref_name                      | ${{ github.ref_name }}'
           echo '-------------------------------------|-----------------------------------'
           echo 'github.head_ref                      | ${{ github.head_ref }}'
@@ -252,6 +254,14 @@ jobs:
           echo 'github.ref_type                      | ${{ github.ref_type }}'
           echo '-------------------------------------|-----------------------------------'
           echo 'github.repository                    | ${{ github.repository }}'
+          echo '-------------------------------------|-----------------------------------'
+          echo 'github.action                        | ${{ github.action }}'
+          echo '-------------------------------------|-----------------------------------'
+          echo 'github.action_ref                    | ${{ github.action_ref }}'
+          echo '-------------------------------------|-----------------------------------'
+          echo 'github.run_id                        | ${{ github.run_id }}'
+          echo '-------------------------------------|-----------------------------------'
+          echo 'github.sha                           | ${{ github.sha }}'
 
       - name: "[DEBUG] Show Workflow Inputs"
         shell: bash
