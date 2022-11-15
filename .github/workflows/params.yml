@@ -71,7 +71,7 @@ jobs:
 
     outputs:
       versions: ${{ steps.set-json.outputs.versions }}
-      refs: ${{ steps.set-json.outputs.matrix }}
+      refs: ${{ steps.set-json.outputs.refs }}
       fields_build: ${{ steps.set-json.outputs.fields_build }}
       fields_deploy: ${{ steps.set-json.outputs.fields_deploy }}
       artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}
@@ -107,7 +107,7 @@ jobs:
 
           echo 'Refs'
           echo '--------------------'
-          echo '${{ steps.set-json.outputs.matrix }}'
+          echo '${{ steps.set-json.outputs.refs }}'
           echo
 
           echo 'Fields (build)'
