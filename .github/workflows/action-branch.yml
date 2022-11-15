@@ -13,6 +13,7 @@ on:
   push:
   # Dispatch: allows for manual trigger via GH UI
   workflow_dispatch:
+  pull_request:
 
 jobs:
 
@@ -72,7 +73,6 @@ jobs:
   # -----------------------------------------------------------------------------------------------
   build-base:
     needs:
-      - params
       - configure
     uses: ./.github/workflows/build.yml
     with:
@@ -80,7 +80,7 @@ jobs:
       run_tests: true
       upload_artifact: true
       matrix: ${{ needs.configure.outputs.matrix_build }}
-      artifact_prefix: ${{ needs.params.outputs.artifact_prefix }}
+      artifact_prefix: ${{ needs.configure.outputs.artifact_prefix }}
       pull_base_image: false
       stage: base
       stage_prev: ''
@@ -88,7 +88,6 @@ jobs:
 
   build-awskops:
     needs:
-      - params
       - configure-awskops
       - build-base
     uses: ./.github/workflows/build.yml
@@ -97,7 +96,7 @@ jobs:
       run_tests: true
       upload_artifact: true
       matrix: ${{ needs.configure-awskops.outputs.matrix_build }}
-      artifact_prefix: ${{ needs.params.outputs.artifact_prefix }}
+      artifact_prefix: ${{ needs.configure-awskops.outputs.artifact_prefix }}
       pull_base_image: false
       stage: awskops
       stage_prev: base
@@ -105,7 +104,6 @@ jobs:
 
   build-awshelm:
     needs:
-      - params
       - configure-awshelm
       - build-base
     uses: ./.github/workflows/build.yml
@@ -114,7 +112,7 @@ jobs:
       run_tests: true
       upload_artifact: true
       matrix: ${{ needs.configure-awshelm.outputs.matrix_build }}
-      artifact_prefix: ${{ needs.params.outputs.artifact_prefix }}
+      artifact_prefix: ${{ needs.configure-awshelm.outputs.artifact_prefix }}
       pull_base_image: false
       stage: awshelm
       stage_prev: base
