@@ -85,12 +85,11 @@ jobs:
       - name: "[SETUP] Set artifact names"
         id: set-artifact-name
         run: |
-          PRE_HASH="$( git rev-parse HEAD | head -c 10 )"
-          VERSION="${{ matrix.VERSION }}"
+          VERSION="$( echo "${{ matrix.VERSION }}" )"
           ARCH="$( echo "${{ matrix.ARCH }}" | sed 's|/|-|g' )"
 
-          NAME_PREV="${{ inputs.artifact_prefix }}-${PRE_HASH}-${VERSION}-${ARCH}-${{ inputs.stage_prev }}"
-          NAME_CURR="${{ inputs.artifact_prefix }}-${PRE_HASH}-${VERSION}-${ARCH}-${{ inputs.stage }}"
+          NAME_PREV="${{ inputs.artifact_prefix }}-${VERSION}-${ARCH}-${{ inputs.stage_prev }}"
+          NAME_CURR="${{ inputs.artifact_prefix }}-${VERSION}-${ARCH}-${{ inputs.stage }}"
           echo "prev=${NAME_PREV}" >> $GITHUB_OUTPUT
           echo "curr=${NAME_CURR}" >> $GITHUB_OUTPUT
 
@@ -104,6 +103,7 @@ jobs:
           sysctl net.ipv4.ip_forward
           sudo sysctl -w net.ipv4.ip_forward=1
           sudo systemctl restart docker
+
 
       # ------------------------------------------------------------
       # Artifact Import
@@ -149,6 +149,7 @@ jobs:
             make test VERSION=${{ matrix.VERSION }} STAGE=${{ inputs.stage }} FLAVOUR=${{ matrix.FLAVOUR }} ARCH=${{ matrix.ARCH }}
         if: ${{ inputs.run_tests }}
 
+
       # ------------------------------------------------------------
       # Push
       # ------------------------------------------------------------
@@ -171,6 +172,7 @@ jobs:
           command: |
             make push NAME=${{ matrix.NAME }} VERSION="${{ matrix.VERSION }}" FLAVOUR=${{ matrix.FLAVOUR }} ARCH=${{ matrix.ARCH }} TAG=${{ steps.tag.outputs.docker-tag }}
         if: ${{ inputs.push_image }}
+
 
       # ------------------------------------------------------------
       # Artifact Export
