@@ -184,13 +184,14 @@ jobs:
           VERSIONS="$(      echo '${{ inputs.versions }}'      | jq -M -c )"
 
           if [ "${{ steps.set-refs.outputs.has_refs }}" = "true" ]; then
+            REFS="$( echo '${{ steps.set-refs.outputs.matrix }}' | jq -M -c )"
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ARCH:. ARCH[], ...})
             INNER_STRING="$( echo "${FIELDS_BUILD}" \
               | jq -r '.[] | to_entries[] | "\(.value): .\(.key)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
-            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: ${{ steps.set-refs.outputs.matrix }}[]'" )"
+            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: ${REFS}[]})'" )"
             MATRIX_BUILD="$( eval jq -M -c  "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             # map({NAME: .NAME, VERSION: .VERSION[], FLAVOUR: .FLAVOUR[], ....})
@@ -198,7 +199,7 @@ jobs:
               | jq -r '.[] | to_entries[] | "\(.value): .\(.key)[]"' \
               | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' \
               | jq -r '. | join(", ")' )"
-            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: ${{ steps.set-refs.outputs.matrix }}[]'" )"
+            OUTER_STRING="$( echo "'map({NAME: .NAME, ${INNER_STRING}, REFS: ${REFS}[]})'" )"
             MATRIX_DEPLOY="$( eval jq -M -c "${OUTER_STRING}" <<<"${VERSIONS}" )"
 
             echo "matrix_build=${MATRIX_BUILD}"   >> $GITHUB_OUTPUT
