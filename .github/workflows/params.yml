@@ -60,10 +60,6 @@ on:
       fields_deploy:
         description: "Stringified JSON of Deploy fields to extract."
         value: ${{ jobs.params.outputs.fields_deploy }}
-      artifact_prefix:
-        description: "Unique artifact prefix to be used with GH artifacts."
-        value: ${{ jobs.params.outputs.artifact_prefix }}
-
 
 jobs:
   params:
@@ -74,7 +70,6 @@ jobs:
       refs: ${{ steps.set-json.outputs.refs }}
       fields_build: ${{ steps.set-json.outputs.fields_build }}
       fields_deploy: ${{ steps.set-json.outputs.fields_deploy }}
-      artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}
 
     steps:
       - name: "[Set-Output] JSON"
@@ -89,14 +84,6 @@ jobs:
           echo "refs=${REFS}"         >> $GITHUB_OUTPUT
           echo "fields_build=${FIELDS_BUILD}"   >> $GITHUB_OUTPUT
           echo "fields_deploy=${FIELDS_DEPLOY}" >> $GITHUB_OUTPUT
-
-      - name: "[Set-Output] artifact_prefix (unique Artifact prefix)"
-        id: set-artifact-prefix
-        shell: bash
-        run: |
-          PRE_DATE="$( date +"%s" )"
-          PRE_RAND="$( echo $RANDOM | md5sum | head -c 10 )"
-          echo "prefix=${PRE_DATE}-${PRE_RAND}" >> $GITHUB_OUTPUT
 
       - name: "[DEBUG] Show settings'"
         run: |
@@ -118,9 +105,4 @@ jobs:
           echo 'Fields (deploy)'
           echo '--------------------'
           echo '${{ steps.set-json.outputs.fields_deploy }}'
-          echo
-
-          echo 'Artifact Prefix'
-          echo '--------------------'
-          echo '${{ steps.set-artifact-prefix.outputs.prefix }}'
           echo

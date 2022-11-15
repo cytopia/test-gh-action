@@ -71,6 +71,9 @@ on:
       matrix_deploy:
         description: "(string) The determined JSON string deploy matrix."
         value: ${{ jobs.configure.outputs.matrix_deploy }}
+      artifact_prefix:
+        description: "(string) The determined unique artifact prefix."
+        value: ${{ jobs.configure.outputs.artifact_prefix }}
 
 jobs:
 
@@ -94,6 +97,7 @@ jobs:
       can_push: ${{ steps.set-push.outputs.can_push }}
       # Settings
       has_refs: ${{ steps.set-refs.outputs.has_refs }}
+      artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}
       # Values
       matrix_build: ${{ steps.set-matrix.outputs.matrix_build }}
       matrix_deploy: ${{ steps.set-matrix.outputs.matrix_deploy }}
@@ -171,6 +175,17 @@ jobs:
           num_latest_tags: ${{ steps.eval-refs.outputs.num_latest_tags }}
           # Only use refs if the job is a schedule or if the job is schedule and was triggered manually
           disable_refs: ${{ !(github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+
+      ###
+      ### Unique Artifact prefix
+      ###
+      - name: "[Set-Output] artifact_prefix (unique Artifact prefix)"
+        id: set-artifact-prefix
+        shell: bash
+        run: |
+          PRE_RUN="$( echo '${{ github.run_id }}' )"
+          PRE_SHA="$( echo '${{ github.sha }}' | md5sum | head -c 10 )"
+          echo "prefix=${PRE_RUN}-${PRE_SHA}" >> $GITHUB_OUTPUT
 
       ###
       ### Set Build and Deploy Matrix
@@ -284,5 +299,6 @@ jobs:
           # Settins
           echo 'has_refs: ${{ steps.set-refs.outputs.has_refs }}'
           # Values
+          echo 'artifact_prefix: ${{ steps.set-artifact-prefix.outputs.prefix }}'
           echo 'matrix_build: ${{ steps.set-matrix.outputs.matrix_build }}'
           echo 'matrix_deploy: ${{ steps.set-matrix.outputs.matrix_deploy }}'
