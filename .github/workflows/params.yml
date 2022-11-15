@@ -107,7 +107,7 @@ jobs:
 
           echo 'Refs'
           echo '--------------------'
-          echo '${{ steps.set-json.outputs.matrix }}'
+          echo '${{ steps.set-json.outputs.refs }}'
           echo
 
           echo 'Fields (build)'
